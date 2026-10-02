@@ -1,0 +1,23 @@
+{
+  "name": "Guillermo Fuentes Quijada",
+  "short_name": "gfqlab",
+  "description": "Head of Engineering — platform modernization, developer experience and product transformation.",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#15161b",
+  "background_color": "#f7f6f3",
+  "display": "standalone",
+  "start_url": "/"
+}

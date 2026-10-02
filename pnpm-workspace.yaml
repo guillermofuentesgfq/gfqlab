@@ -1,0 +1,14 @@
+packages:
+  - '.'
+
+# pnpm 10 no ejecuta los scripts de postinstall de las dependencias salvo que
+# se autoricen aquí de forma explícita. Sin esta lista, `pnpm install` avisa y
+# los salta.
+#
+#   esbuild  — binario que usa el plugin de Tailwind v4 para compilar el CSS.
+#   workerd  — el runtime local de Cloudflare que `wrangler dev` ejecuta.
+#              `wrangler deploy` no lo necesita, pero sin él los comandos
+#              locales de wrangler fallan al buscar el binario.
+allowBuilds:
+  esbuild: true
+  workerd: true

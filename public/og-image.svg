@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Source for public/og-image.png. 1200×630 is the size Open Graph, Twitter
+       and LinkedIn all crop to; anything else gets letterboxed or cropped in
+       the feed. Kept as an SVG in the repo so the text stays editable — the
+       PNG is regenerated from it rather than drawn by hand. -->
+  <style>
+    .sans { font-family: Helvetica Neue, Helvetica, Arial, sans-serif; }
+    .mono { font-family: Menlo, Consolas, monospace; }
+  </style>
+
+  <rect width="1200" height="630" fill="#15161B" />
+
+  <!-- Accent rule, matching the favicon mark. -->
+  <rect x="80" y="120" width="72" height="8" rx="4" fill="#3D3DFF" />
+
+  <text class="sans" x="80" y="290" fill="#F7F6F3" font-size="82" font-weight="700" letter-spacing="-2">Guillermo Fuentes</text>
+  <text class="sans" x="80" y="382" fill="#F7F6F3" font-size="82" font-weight="700" letter-spacing="-2">Quijada</text>
+
+  <text class="sans" x="80" y="460" fill="#9A9CA6" font-size="38">Head of Engineering</text>
+
+  <text class="mono" x="80" y="556" fill="#3D3DFF" font-size="26">gfqlab.com</text>
+</svg>

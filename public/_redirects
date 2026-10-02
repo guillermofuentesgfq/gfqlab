@@ -1,0 +1,15 @@
+# Redirect rules, applied by Cloudflare Workers static assets before the asset
+# lookup. One rule, and it exists to enforce a single canonical hostname.
+#
+# The apex is canonical, not `www`. BaseHead emits `<link rel="canonical">`
+# pointing at gfqlab.com for every page, and the sitemap only lists the apex.
+# Without this redirect the same document would be reachable under both
+# hostnames, which splits the canonical signal across two URLs.
+#
+# It is deliberately NOT in charge of trailing slashes: `html_handling:
+# "auto-trailing-slash"` in wrangler.jsonc already owns that, and two layers
+# rewriting the same URL is how redirect loops happen.
+#
+# `:splat` carries the path through, so /work/ecs-aws-infra/ on www lands on
+# /work/ecs-aws-infra/ on the apex rather than dropping to the root.
+www.gfqlab.com/* https://gfqlab.com/:splat 301

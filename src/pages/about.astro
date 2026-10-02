@@ -1,0 +1,150 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Button from '@/components/Button.astro';
+import SectionHeading from '@/components/SectionHeading.astro';
+import { SITE } from '@/site.config';
+import { EXPERIENCE, SKILLS, EDUCATION, CERTIFICATIONS } from '@/data/profile';
+---
+
+<BaseLayout
+  title="About"
+  description={`Career, skills and background of ${SITE.name} — Head of Engineering, focused on platform modernization and developer experience.`}
+>
+  <section class="mx-auto max-w-3xl px-6 pt-16 sm:pt-24">
+    <p class="text-ink-soft mb-6 font-mono text-xs tracking-[0.2em] uppercase">About</p>
+
+    <h1 class="font-display text-ink max-w-xl text-3xl font-medium sm:text-4xl">
+      {SITE.role}.
+    </h1>
+
+    <div class="prose prose-sm sm:prose-base mt-8 max-w-xl">
+      <p>
+        I lead engineering organizations through the part that is actually hard:
+        not the first release, but the tenth team, the second product line, the
+        migration nobody asked for and everybody has to live with. Ten years in,
+        that has meant platform engineering, developer experience, and
+        observability — the work that decides whether everything above it can
+        ship safely.
+      </p>
+      <p>
+        I combine a hands-on engineering background (Ruby on Rails, Kubernetes,
+        AWS, Symfony) with measurable outcomes: a 30% reduction in cloud cost
+        through autoscaling and right-sizing, agent orchestration for automated
+        code review and error resolution, and an observability stack rebuilt on
+        OpenTelemetry that took MTTR from hours to minutes.
+      </p>
+      <p>
+        My research sits on the same problem from the other direction: my
+        doctorate is in BizDevOps and enterprise architecture, which is a
+        structured way of asking how engineering execution and business
+        outcomes get aligned. Based in Spain, I work remotely with a
+        Chile-headquartered company serving millions of users across Latin
+        America.
+      </p>
+    </div>
+
+    <div class="mt-10 flex flex-wrap gap-3">
+      <Button href="/cv.pdf" variant="solid">Download CV (PDF)</Button>
+      <Button href={`mailto:${SITE.email}`} variant="ghost">Get in touch</Button>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-6 pt-20 pb-20">
+    <SectionHeading eyebrow="Experience" count={EXPERIENCE.length} />
+
+    <ol class="space-y-10">
+      {
+        EXPERIENCE.map((role) => (
+          <li class="border-line border-l-2 pl-5">
+            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <h3 class="font-display text-ink text-xl font-medium">{role.title}</h3>
+              <span class="text-ink-soft font-mono text-xs">{role.period}</span>
+            </div>
+
+            <p class="text-ink-soft mt-1 font-mono text-xs">
+              {role.company} · {role.location}
+            </p>
+
+            <ul class="mt-4 space-y-2">
+              {role.highlights.map((item) => (
+                <li class="text-ink-soft flex gap-3 text-sm leading-relaxed">
+                  <span class="text-signal mt-2 shrink-0" aria-hidden="true">
+                    —
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-6 pb-20">
+    <SectionHeading eyebrow="Skills" count={SKILLS.length} />
+
+    <div class="space-y-8">
+      {
+        SKILLS.map((group) => (
+          <div>
+            <p class="text-ink font-mono text-xs tracking-[0.2em] uppercase">{group.label}</p>
+            <ul class="mt-3 flex flex-wrap gap-2">
+              {group.items.map((item) => (
+                <li class="border-line text-ink-soft rounded-full border px-3 py-1 font-mono text-xs">
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-6 pb-20">
+    <SectionHeading eyebrow="Education" count={EDUCATION.length} />
+
+    <div class="space-y-6">
+      {
+        EDUCATION.map((item) => (
+          <div>
+            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <h3 class="text-ink text-base font-medium">{item.degree}</h3>
+              <span class="text-ink-soft font-mono text-xs">{item.period}</span>
+            </div>
+            <p class="text-ink-soft mt-1 text-sm">{item.school}</p>
+            <p class="text-ink-soft mt-2 max-w-xl text-sm leading-relaxed">{item.detail}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-6 pb-24">
+    <SectionHeading eyebrow="Certifications" count={CERTIFICATIONS.length} />
+
+    <ul>
+      {
+        CERTIFICATIONS.map((cert) => (
+          <li class="border-line border-b">
+            <a
+              href={cert.href}
+              rel="noopener noreferrer"
+              target="_blank"
+              class="group flex items-center justify-between gap-4 py-4"
+            >
+              <span class="min-w-0">
+                <span class="text-ink group-hover:text-signal block text-sm transition-colors">
+                  {cert.name}
+                </span>
+                <span class="text-ink-soft block font-mono text-xs">{cert.issuer}</span>
+              </span>
+              <span class="text-ink-soft shrink-0 font-mono text-xs">{cert.year}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</BaseLayout>

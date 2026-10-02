@@ -1,0 +1,31 @@
+version: 2
+updates:
+  # Dependencias de pnpm. La versión del propio gestor se fija en
+  # package.json con `packageManager` y se actualiza aquí, no con
+  # `pnpm/action-setup`, que es quien la instala en CI.
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'monthly'
+    open-pull-requests-limit: 5
+    groups:
+      astro:
+        patterns: ['astro', '@astrojs/*']
+      tailwind:
+        patterns: ['tailwindcss', '@tailwindcss/*']
+      wrangler:
+        patterns: ['wrangler']
+      # El resto (transitivas) agrupadas: veinte PRs sueltos de dependencias
+      # indirectas son ruido que hace imposible revisar el que importa.
+      dev-deps:
+        dependency-type: 'development'
+        update-types: ['minor', 'patch']
+
+  # Acciones de los workflows. Actualiza tanto las etiquetas como los SHA
+  # pineados, y el PR toca la línea `uses:` del workflow, que es donde vive
+  # el SHA.
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'monthly'
+    open-pull-requests-limit: 5

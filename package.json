@@ -1,0 +1,47 @@
+{
+  "name": "gfqlab",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal site of Guillermo Fuentes Quijada — Head of Engineering. Astro + Tailwind CSS, published as a Cloudflare Worker with static assets.",
+  "keywords": [
+    "astro",
+    "cloudflare-workers",
+    "tailwindcss",
+    "typescript",
+    "portfolio"
+  ],
+  "license": "MIT",
+  "author": "Guillermo Fuentes Quijada",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/guillermofuentesgfq/gfqlab"
+  },
+  "homepage": "https://gfqlab.com",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "packageManager": "pnpm@10.13.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check",
+    "deploy": "wrangler deploy",
+    "rollback": "wrangler rollback"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@tailwindcss/typography": "^0.5.20",
+    "@tailwindcss/vite": "^4.3.3",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.146.0"
+  }
+}

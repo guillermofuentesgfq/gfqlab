@@ -1,0 +1,78 @@
+// Cloudflare Workers — publicación del sitio.
+//
+// Este Worker NO ejecuta código. Publica únicamente los assets estáticos que
+// Astro deja en `dist/`, así que no hay `main`: en un Worker solo-assets la
+// clave es opcional y wrangler despliega un Worker que se limita a servir
+// ficheros. En el plan Free las peticiones a assets estáticos son gratuitas e
+// ilimitadas (el límite de 100.000/día solo cuenta peticiones que invocan el
+// script del Worker), así que el presupuesto de peticiones no es una
+// preocupación en la práctica.
+//
+// En local NO se usa `wrangler dev`, sino `pnpm dev` (Astro). Hay un bug
+// conocido en wrangler >= 4.99 por el que, cuando coexisten `routes` y
+// `assets`, las rutas que casan con el glob de la ruta se enrutan al Worker
+// antes de probar los assets y todos los ficheros estáticos dan 404. No afecta
+// a producción, donde los assets se sirven antes que el script, pero sí
+// rompería el desarrollo local.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "gfqlab",
+
+  // Fecha de hoy. No la retrocedas: Cloudflare la usa para activar el
+  // comportamiento del runtime, y una fecha antigua reintroduce bugs ya
+  // corregidos.
+  "compatibility_date": "2026-10-02",
+
+  // Sin `workers.dev` la URL `<worker>.<cuenta>.workers.dev` deja de existir.
+  // Es intencionado: el dominio canónico es gfqlab.com y no queremos dos
+  // URLs sirviendo el mismo sitio (una de ellas sin canonical ni sitemap).
+  "workers_dev": false,
+
+  "assets": {
+    // `dist`, no `public`: `public/` es la fuente de `public/` + `dist/`.
+    // Apuntar aquí subiría los fuentes originales además del resultado.
+    "directory": "./dist",
+
+    // Las rutas que no casan con ningún asset sirven el `404.html` que Astro
+    // genera en `dist/404.html`, en vez de la página de error genérica de
+    // Cloudflare. El sitio tiene un 404 propio con enlaces de vuelta.
+    "not_found_handling": "404-page",
+
+    // Astro emite `about/index.html` y no `about.html`, así que la forma
+    // canónica de cada ruta es con barra final. Con `auto-trailing-slash`
+    // `/about` redirige a `/about/` y `/about/index.html` se sirve en
+    // `/about/`. Cambiar esto a `none` haría que el sitio sirviera dos URLs
+    // distintas para el mismo documento.
+    "html_handling": "auto-trailing-slash"
+  },
+
+  // `custom_domain: true` hace que wrangler cree el registro DNS y la
+  // asociación de Custom Domain por su cuenta en el primer despliegue. No hay
+  // que dar de alta nada a mano en el panel salvo que la zona no exista en la
+  // cuenta (gfqlab.com ya estaba dada de alta antes de este repositorio).
+  //
+  // El apex y `www` se declaran los dos porque el dominio apex no queda
+  // cubierto por ningún wildcard. El 301 de `www` a apex lo aplica
+  // `public/_redirects`; declarar `www` aquí es solo para que Cloudflare
+  // resuelva ese hostname y pueda devolver el redirect.
+  // Un Custom Domain cubre su hostname ENTERO: no admite ni comodines ni
+  // rutas. La API rechaza `gfqlab.com/*` con "Wildcard operators are not
+  // allowed in Custom Domains", y el fallo aparece al desplegar, no al validar
+  // el JSON. Por eso los patrones van sin `/*` y sin ruta: el Worker termina
+  // sirviendo todas las peticiones de ambos hostnames.
+  //
+  // La alternativa sería una route con `zone_name` y `gfqlab.com/*`, que sí
+  // admite rutas pero deja el registro DNS a mano. Con `custom_domain: true`
+  // wrangler crea el CNAME y la asociación en el mismo despliegue.
+  "routes": [
+    { "pattern": "gfqlab.com", "custom_domain": true },
+    { "pattern": "www.gfqlab.com", "custom_domain": true }
+  ],
+
+  // Workers Logs: deja consultables los `console.*` desde el panel
+  // (Workers & Pages → gfqlab → Logs). Un Worker solo-assets no genera mucho
+  // logs, pero sirve para confirmar que una petición llegó a la ruta prevista.
+  "observability": {
+    "enabled": true
+  }
+}

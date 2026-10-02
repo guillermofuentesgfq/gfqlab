@@ -1,0 +1,107 @@
+name: Deploy
+
+# El despliegue ya no ocurre al hacer push a main: se dispara al publicar una
+# release en GitHub. Eso da control explícito de qué commit sale a producción y
+# deja el push a main como paso de verificación, no de publicación.
+on:
+  release:
+    types: [published]
+  # Escape hatch para redesplegar sin cortar una release nueva.
+  workflow_dispatch:
+
+concurrency:
+  # Un solo despliegue a la vez. cancel-in-progress evita que un push al
+  # cancelled por otro despliegue a medias deje Cloudflare en un estado dudoso.
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Verificar y desplegar
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # Fijadas por SHA: una etiqueta se puede mover, un commit no. Ver el
+      # comentario en test.yml.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # En una release se despliega el commit exacto al que apunta la
+          # etiqueta, no el HEAD de main. En un disparo manual, el SHA actual.
+          ref: ${{ github.event.release.tag_name || github.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 10.13.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Se re-verifica aquí, en vez de confiar en que test.yml pasara para ese
+      # commit. Una release puede publicarse desde cualquier rama, y desplegar
+      # código sin comprobar rompería la garantía de que lo publicado pasó las
+      # pruebas.
+      - name: Typecheck and build
+        run: pnpm build
+
+      - name: Verify sitemap and canonical domain
+        run: |
+          test -f dist/sitemap-index.xml
+          grep -q 'https://gfqlab.com/' dist/sitemap-index.xml
+          grep -q 'rel="canonical" href="https://gfqlab.com/' dist/index.html
+
+      - name: Resumen del despliegue
+        run: |
+          {
+            echo "### Despliegue"
+            echo ""
+            echo "- **Worker:** \`gfqlab\`"
+            echo "- **Dominio:** https://gfqlab.com"
+            echo "- **Versión:** \`${{ github.event.release.tag_name || 'manual' }}\`"
+            echo "- **Commit:** \`${{ github.sha }}\`"
+            echo "- **Disparado por:** ${{ github.actor }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # El token necesita `Account → Workers Scripts: Edit` y
+          # `Zone → Workers Routes: Edit` sobre gfqlab.com. Con esa pareja el
+          # primer deploy crea los custom domains del apex y de www; con
+          # `workers.dev` desactivado en wrangler.jsonc, el Worker no publica
+          # en ningún otro sitio.
+          command: deploy
+
+      # El DNS de un custom domain nuevo no existe hasta este deploy, y tarda
+      # entre 30 y 120 segundos en propagar. Comprobarlo aquí, dentro del
+      # mismo run, solo produciría un falso negativo la primera vez.
+      - name: Nota sobre el dominio
+        if: always()
+        run: |
+          echo "Los custom domains se crean en este despliegue. Si es el primero, espera 1-2 minutos antes de comprobar https://gfqlab.com." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Resultado
+        if: always()
+        run: |
+          {
+            echo "### Estado"
+            echo ""
+            if [ "${{ job.status }}" = "success" ]; then
+              echo "Desplegado correctamente en https://gfqlab.com"
+            else
+              echo "**El despliegue falló.** Cloudflare conserva la versión anterior."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

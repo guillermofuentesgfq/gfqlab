@@ -1,0 +1,71 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import Button from '@/components/Button.astro';
+import { formatDate } from '@/utils/formatDate';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('publications', ({ data }) => !data.draft);
+  return entries.map((entry) => ({
+    params: { id: entry.id },
+    props: { entry },
+  }));
+}
+
+interface Props {
+  entry: CollectionEntry<'publications'>;
+}
+
+const { entry } = Astro.props;
+const { title, venue, kind, date, authors, doi, url } = entry.data;
+const { Content } = await render(entry);
+
+const formattedDate = formatDate(date, 'medium');
+
+// Rendered as a label rather than hidden in CSS: a screen reader user landing
+// here has no way to tell a journal article from a conference paper.
+const kindLabel = kind === 'journal' ? 'Journal article' : 'Conference paper';
+---
+
+<BaseLayout title={title} description={`${kindLabel}: ${title}. ${venue}.`}>
+  <article class="mx-auto max-w-3xl px-6 pt-16 pb-24 sm:pt-24">
+    <a
+      href="/publications/"
+      class="text-ink-soft hover:text-signal font-mono text-xs transition-colors"
+    >
+      ← All publications
+    </a>
+
+    <p class="text-ink-soft mt-8 mb-6 font-mono text-xs tracking-[0.2em] uppercase">
+      {kindLabel}
+    </p>
+
+    <h1 class="font-display text-ink max-w-2xl text-3xl leading-tight font-medium sm:text-4xl">
+      {title}
+    </h1>
+
+    <dl
+      class="border-line text-ink-soft mt-6 flex flex-wrap gap-x-8 gap-y-2 border-y py-4 font-mono text-xs"
+    >
+      {authors && <div><dt class="inline">Authors —</dt><dd class="inline">{authors}</dd></div>}
+      <div><dt class="inline">Venue —</dt><dd class="inline">{venue}</dd></div>
+      <div><dt class="inline">Published —</dt><dd class="inline">{formattedDate}</dd></div>
+      {doi && <div><dt class="inline">DOI —</dt><dd class="inline">{doi}</dd></div>}
+    </dl>
+
+    <div class="prose prose-sm sm:prose-base mt-10 max-w-2xl">
+      <Content />
+    </div>
+
+    <div class="mt-10 flex flex-wrap gap-3">
+      {
+        url && (
+          <Button href={url} variant="solid">
+            Read the paper ↗
+          </Button>
+        )
+      }
+      <Button href="/cv.pdf" variant="ghost">Download CV</Button>
+    </div>
+  </article>
+</BaseLayout>

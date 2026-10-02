@@ -1,0 +1,80 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import SectionHeading from '@/components/SectionHeading.astro';
+import { SITE } from '@/site.config';
+
+const papers = (await getCollection('publications', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+---
+
+<BaseLayout
+  title="Publications"
+  description={`Peer-reviewed papers by ${SITE.name} on BizDevOps, enterprise architecture and IT governance.`}
+>
+  <section class="mx-auto max-w-3xl px-6 pt-16 pb-24 sm:pt-24">
+    <p class="text-ink-soft mb-6 font-mono text-xs tracking-[0.2em] uppercase">Publications</p>
+
+    <h1 class="font-display text-ink max-w-xl text-3xl font-medium sm:text-4xl">
+      Research on BizDevOps and enterprise architecture.
+    </h1>
+
+    <p class="text-ink-soft mt-6 max-w-xl text-sm leading-relaxed">
+      Peer-reviewed work from my doctorate at the University of Castilla-La
+      Mancha, co-authored with Francisco Ruiz-González and Angélica Caro. The
+      through-line is a single problem: how engineering organizations stay
+      aligned with the business without paying for it in delivery speed.
+    </p>
+
+    <div class="mt-16">
+      <SectionHeading eyebrow="All publications" count={papers.length} />
+
+      <ul>
+        {
+          papers.map((paper) => (
+            <li class="border-line border-b py-6">
+              <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <h2 class="font-display text-ink max-w-xl text-lg leading-snug">
+                  <a href={`/publications/${paper.id}/`} class="hover:text-signal transition-colors">
+                    {paper.data.title}
+                  </a>
+                </h2>
+                <span class="text-ink-soft font-mono text-xs">
+                  {paper.data.date.getUTCFullYear()}
+                </span>
+              </div>
+
+              <p class="text-ink-soft mt-2 font-mono text-xs">{paper.data.venue}</p>
+
+              <p class="text-ink-soft mt-3 max-w-xl text-sm leading-relaxed">
+                {paper.data.summary}
+              </p>
+
+              <div class="mt-3 flex flex-wrap items-center gap-4">
+                <a
+                  href={`/publications/${paper.id}/`}
+                  class="text-signal font-mono text-xs hover:underline"
+                >
+                  Read the summary →
+                </a>
+                {
+                  paper.data.url && (
+                    <a
+                      href={paper.data.url}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                      class="text-ink-soft hover:text-signal font-mono text-xs transition-colors"
+                    >
+                      {paper.data.doi}
+                    </a>
+                  )
+                }
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

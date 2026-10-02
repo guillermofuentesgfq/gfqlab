@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="gfqlab">
+  <!-- The mark is drawn with plain shapes and <text> rather than outlined
+       paths on purpose: an outlined "gf" would have to be maintained by hand,
+       while <text> with a ubiquitous sans stack degrades gracefully to a
+       near-identical face on any system. The PNG icons in this directory are
+       rasterized from this exact file, so platforms that cannot use SVG get
+       identical pixels. -->
+  <style>
+    .bg { fill: #15161B; }
+    .fg { fill: #F7F6F3; }
+    .accent { fill: #3D3DFF; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #F7F6F3; }
+      .fg { fill: #15161B; }
+      .accent { fill: #3D3DFF; }
+    }
+  </style>
+  <rect class="bg" width="32" height="32" rx="7" />
+  <text
+    class="fg"
+    x="16"
+    y="22"
+    font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+    font-size="18"
+    font-weight="700"
+    letter-spacing="-1"
+    text-anchor="middle"
+  >gf</text>
+  <rect class="accent" x="11" y="25" width="10" height="2.5" rx="1.25" />
+</svg>

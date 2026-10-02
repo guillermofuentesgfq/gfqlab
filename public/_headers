@@ -1,0 +1,58 @@
+# Custom HTTP headers for static assets, applied by Cloudflare Workers static
+# assets. Lines starting with # are comments.
+#
+# This file lives in public/ and ends up at the root of the asset directory
+# (dist/), which is where wrangler looks for it. It is NOT served as a public
+# asset: wrangler excludes _headers, _redirects and .assetsignore from the
+# upload manifest and sends their contents as the Worker's assets config
+# instead. The rules below take effect at the edge, and /_headers 404s rather
+# than leaking the rule file.
+
+# Astro fingerprints everything under /_astro/ (CSS, JS, fonts): the filename
+# changes when the content changes. A one-year immutable cache is therefore
+# safe, and it is where most of the repeat traffic comes from.
+#
+# Safe *because* of the fingerprint — if a build ever emitted an unhashed file
+# under this path, clients would hold it for a year and never see the fix.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The HTML is the opposite case: it references the hashed assets above, so it
+# must not be cached hard or a deploy would not reach returning visitors.
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# The favicons are replaced on redesigns rather than on every deploy, and
+# browsers cache them aggressively on their own. A week is long enough to
+# spare repeat requests and short enough that a rebrand lands promptly.
+/favicon.svg
+  Cache-Control: public, max-age=604800
+/favicon.ico
+  Cache-Control: public, max-age=604800
+/apple-touch-icon.png
+  Cache-Control: public, max-age=604800
+/site.webmanifest
+  Cache-Control: public, max-age=604800
+/og-image.png
+  Cache-Control: public, max-age=604800
+
+# The CV is versioned by content rather than by filename, so it gets a short
+# cache instead of an immutable one: a new upload at the same URL has to be
+# picked up.
+/cv.pdf
+  Cache-Control: public, max-age=3600
+
+# Baseline security headers. The site loads no third-party JavaScript and makes
+# no outbound requests, so the CSP can stay this tight: 'unsafe-inline' is
+# needed only for the pre-paint theme script in BaseHead.astro, which must run
+# synchronously in <head> before first paint to avoid a flash of the wrong
+# theme.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), interest-cohort=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'
