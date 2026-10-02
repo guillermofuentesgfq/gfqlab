@@ -51,15 +51,18 @@
   // que dar de alta nada a mano en el panel salvo que la zona no exista en la
   // cuenta (gfqlab.com ya estaba dada de alta antes de este repositorio).
   //
-  // El apex y `www` se declaran los dos porque el dominio apex no queda
-  // cubierto por ningún wildcard. El 301 de `www` a apex lo aplica
-  // `public/_redirects`; declarar `www` aquí es solo para que Cloudflare
-  // resuelva ese hostname y pueda devolver el redirect.
   // Un Custom Domain cubre su hostname ENTERO: no admite ni comodines ni
   // rutas. La API rechaza `gfqlab.com/*` con "Wildcard operators are not
   // allowed in Custom Domains", y el fallo aparece al desplegar, no al validar
-  // el JSON. Por eso los patrones van sin `/*` y sin ruta: el Worker termina
+  // el JSON. Por eso los patrones van sin `/*` ni ruta, y el Worker termina
   // sirviendo todas las peticiones de ambos hostnames.
+  //
+  // Se declaran los dos (apex y www) porque un Custom Domain no admite
+  // comodines: uno solo dejaría el otro hostname sin resolver. No es la forma
+  // de servir dos versiones del sitio — `public/_redirects` manda el 301 de
+  // `www` al apex, y ambos canonical y sitemap apuntan al apex—, sino la de
+  // tenerlos resueltos para poder responder con ese redirect en vez de con un
+  // error de Cloudflare.
   //
   // La alternativa sería una route con `zone_name` y `gfqlab.com/*`, que sí
   // admite rutas pero deja el registro DNS a mano. Con `custom_domain: true`
