@@ -1,14 +1,46 @@
 packages:
   - '.'
 
-# pnpm 10 no ejecuta los scripts de postinstall de las dependencias salvo que
-# se autoricen aquí de forma explícita. Sin esta lista, `pnpm install` avisa y
-# los salta.
+# pnpm no ejecuta los scripts de postinstall de las dependencias salvo que se
+# autoricen aquí de forma explícita. Sin esta lista, `pnpm install` avisa y los
+# salta, y el aviso reaparece en cada instalación.
+#
+# La clave es `onlyBuiltDependencies` y no `allowBuilds`: esta última es el
+# nombre equivalente en pnpm 11, y pnpm 10 —la versión fijada en
+# package.json— la ignora en silencio, sin decir que no la entiende.
 #
 #   esbuild  — binario que usa el plugin de Tailwind v4 para compilar el CSS.
 #   workerd  — el runtime local de Cloudflare que `wrangler dev` ejecuta.
 #              `wrangler deploy` no lo necesita, pero sin él los comandos
 #              locales de wrangler fallan al buscar el binario.
-allowBuilds:
-  esbuild: true
-  workerd: true
+onlyBuiltDependencies:
+  - esbuild
+  - workerd
+
+# `overrides` viven aquí y no en `pnpm.overrides` de package.json porque pnpm 10
+# los lee de pnpm-workspace.yaml para los proyectos que lo usan.
+#
+# Astro fija versiones transitivas con vulnerabilidades altas conocidas
+# (devalue, fast-uri, js-yaml, nanoid, postcss, smol-toml, yaml) y no las
+# actualiza hasta su propio release. Estas son todas dependencias de build:
+# ninguna llega al bundle que se sirve en el navegador, y varias solo se usan
+# en `astro check`, que no corre en el sitio publicado. Aun así, sin esto
+# `pnpm audit --audit-level=high` falla y bloquea el merge por algo que no es
+# explotable aquí.
+#
+# Cada rango es `>=versión parcheada`, sin techo: lo que instala pnpm resuelve son
+# las versiones mayores que ya corrigen el aviso. Cuando Astro actualice su
+# lockfile interno, se pueden borrar las que ya no apliquen; el propio
+# Dependabot abre PR al cambiar las dependencias.
+#
+# Revisar en `pnpm why <paquete>` a cuál depende transitivamente cada una antes
+# de tocar una: un override es una promesa de que la versión arreglada es
+# compatible con lo que la usa.
+overrides:
+  devalue: '>=5.9.3'
+  fast-uri: '>=3.1.8'
+  js-yaml: '>=4.3.2'
+  nanoid: '>=3.3.18'
+  postcss: '>=8.5.23'
+  smol-toml: '>=1.7.1'
+  yaml: '>=2.8.3'

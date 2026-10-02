@@ -58,6 +58,51 @@ El contenido de `src/data/profile.ts` y de las colecciones sale del CV en
 LaTeX, que vive en otro repositorio. **Nada los sincroniza automáticamente**:
 cuando cambie el CV, hay que cambiarlo también aquí.
 
+## Pendiente: crear el API token
+
+El deploy **no funciona hasta que exista `CLOUDFLARE_API_TOKEN`**. Pasos:
+
+1. Cloudflare → **My Profile → API Tokens → Create Token → Custom token**
+2. Añadir los permisos de la tabla de abajo
+3. **Account Resources** → *Include* → *la cuenta concreta*
+   **Zone Resources** → *Include* → *Zone* → *gfqlab.com*
+4. Copy token, y en local:
+
+   ```bash
+   gh secret set CLOUDFLARE_API_TOKEN
+   ```
+
+| Ámbito | Permiso | Por qué |
+| --- | --- | --- |
+| Account | Workers Scripts: **Edit** | Sube el Worker y sus assets |
+| Account | Account Settings: **Read** | Lo requiere wrangler |
+| Zone | Workers Routes: **Edit** | Crea los custom domains |
+| Zone | DNS: **Edit** | Crea el registro CNAME |
+| User | User Details: **Read** | Lo requiere wrangler |
+
+Acotar Account y Zone a la cuenta y la zona concretas —en lugar de "todas"—
+hace que el token no pueda tocar nada más. Con `workers_dev` desactivado,
+aunque se filtrara no podría publicar nada fuera de gfqlab.com.
+
+No hay que tocar el DNS a mano: con `custom_domain: true`, wrangler crea los
+registros del apex y de `www` en el primer despliegue. Solo tarda 30–120
+segundos en propagar.
+
+## Dependencias transitivas con avisos
+
+`pnpm-workspace.yaml` fija `overrides` para siete paquetes transitivos de Astro
+con avisos de seguridad altos conocidos: `devalue`, `fast-uri`, `js-yaml`,
+`nanoid`, `postcss`, `smol-toml` y `yaml`. Astro no los actualiza hasta su
+propio release.
+
+Todas son dependencias de **build**: ninguna llega al bundle que se sirve en el
+navegador, y varias solo se usan en `astro check`, que no corre en el sitio
+publicado. Aun así, sin los overrides `pnpm audit --audit-level=high` falla y
+bloquea el merge por algo que no es explotable aquí.
+
+Cuando Astro actualice su árbol de dependencias, se pueden borrar los overrides
+que ya no apliquen.
+
 ## Deploy
 
 No se despliega al hacer push a `main`, sino al **publicar una release**:
@@ -83,30 +128,10 @@ inmediato y no requiere redesplegar nada.
 
 ### Secrets del repositorio
 
-| Secret | Valor |
+| Secret | Estado |
 | --- | --- |
-| `CLOUDFLARE_API_TOKEN` | API token de Cloudflare (ver abajo) |
-| `CLOUDFLARE_ACCOUNT_ID` | Account ID, visible en `pnpm exec wrangler whoami` |
-
-El token se crea en Cloudflare → **My Profile → API Tokens → Create Token →
-Custom token** con exactamente estos permisos:
-
-| Ámbito | Permiso | Nota |
-| --- | --- | --- |
-| Account | Workers Scripts: **Edit** | Sube el Worker y sus assets |
-| Account | Account Settings: **Read** | Lo requiere wrangler |
-| Zone (gfqlab.com) | Workers Routes: **Edit** | Crea los custom domains |
-| Zone (gfqlab.com) | DNS: **Edit** | Crea el registro CNAME del apex |
-| User | User Details: **Read** | Lo requiere wrangler |
-
-Acotando Account a la cuenta concreta y Zone a la zona `gfqlab.com` —en lugar
-de "todas las cuentas" y "todas las zonas"— el token no puede tocar nada más de
-esa cuenta. `workers_dev` está desactivado en `wrangler.jsonc`, así que este
-token no puede publicar nada fuera de gfqlab.com aunque se filtrara.
-
-El DNS no hay que tocarlo a mano: con `custom_domain: true` en las rutas,
-wrangler crea los registros del apex y de `www` en el primer despliegue. Solo
-tarda 30–120 segundos en propagar.
+| `CLOUDFLARE_ACCOUNT_ID` | Ya configurado |
+| `CLOUDFLARE_API_TOKEN` | **Pendiente** — hay que crearlo (ver abajo) |
 
 ## Dominio
 
