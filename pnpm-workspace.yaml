@@ -22,9 +22,11 @@ onlyBuiltDependencies:
 #
 # Astro fija versiones transitivas con vulnerabilidades altas conocidas
 # (devalue, fast-uri, js-yaml, nanoid, postcss, smol-toml, yaml) y no las
-# actualiza hasta su propio release. Estas son todas dependencias de build:
-# ninguna llega al bundle que se sirve en el navegador, y varias solo se usan
-# en `astro check`, que no corre en el sitio publicado. Aun así, sin esto
+# actualiza hasta su propio release. Lo mismo pasa con transitivas que fijan
+# wrangler/miniflare (sharp, undici 7) y con las de la cadena de Tailwind
+# (source-map-js, vite). Todas son dependencias de build: ninguna llega al
+# bundle que se sirve en el navegador, y varias solo se usan en `astro check`,
+# que no corre en el sitio publicado. Aun así, sin esto
 # `pnpm audit --audit-level=high` falla y bloquea el merge por algo que no es
 # explotable aquí.
 #
@@ -42,5 +44,16 @@ overrides:
   js-yaml: '>=4.3.2'
   nanoid: '>=3.3.18'
   postcss: '>=8.5.23'
+  sharp: '>=0.35.5'
   smol-toml: '>=1.7.1'
+  source-map-js: '>=1.2.2'
+  vite: '>=8.1.6'
   yaml: '>=2.8.3'
+  zod: '>=4.6.6'
+  # `undici` es el caso raro: dos líneas mayores conviven en el árbol y no
+  # son intercambiables. Miniflare (el runtime local de Cloudflare) fija la 7
+  # exacta, y unifont —que usa Astro para optimizar fuentes— la 8. Un override
+  # global `>=8` subiría también miniflare a la 8 sin que nadie lo haya probado,
+  # así que cada línea tiene su propio selector y su propio techo.
+  'undici@<8': '>=7.30.1 <8'
+  'undici@>=8': '>=8.12.2'
